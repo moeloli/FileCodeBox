@@ -17,8 +17,61 @@ FileCodeBox 是一个简单高效的文件分享工具，支持文件临时中�
 
 ### Docker 部署（推荐）
 
+#### 快速启动
+
 ```bash
-docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:beta
+docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:latest
+```
+
+#### Docker Compose
+
+```yml
+version: "3"
+services:
+  file-code-box:
+    image: lanol/filecodebox:latest
+    volumes:
+      - fcb-data:/app/data:rw
+    restart: unless-stopped
+    ports:
+      - "12345:12345"
+    environment:
+      - WORKERS=4
+      - LOG_LEVEL=info
+volumes:
+  fcb-data:
+    external: false
+```
+
+#### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `HOST` | `::` | 监听地址，支持 IPv4/IPv6 双栈 |
+| `PORT` | `12345` | 服务端口 |
+| `WORKERS` | `4` | 工作进程数，建议设置为 CPU 核心数 |
+| `LOG_LEVEL` | `info` | 日志级别：debug/info/warning/error |
+
+#### 自定义配置示例
+
+```bash
+docker run -d --restart=always \
+  -p 12345:12345 \
+  -v /opt/FileCodeBox/:/app/data \
+  -e WORKERS=8 \
+  -e LOG_LEVEL=warning \
+  --name filecodebox \
+  lanol/filecodebox:latest
+```
+
+### 配置反向代理（Nginx）
+
+```nginx
+location / {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass http://localhost:12345;
+}
 ```
 
 ### 手动部署

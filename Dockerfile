@@ -38,6 +38,19 @@ COPY --from=frontend-builder /build/fronted-2023/dist ./themes/2023
 # 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 环境变量配置
+ENV HOST="::" \
+    PORT=12345 \
+    WORKERS=4 \
+    LOG_LEVEL="info"
+
 EXPOSE 12345
 
-CMD ["python", "main.py"]
+# 生产环境启动命令
+CMD uvicorn main:app \
+    --host $HOST \
+    --port $PORT \
+    --workers $WORKERS \
+    --log-level $LOG_LEVEL \
+    --proxy-headers \
+    --forwarded-allow-ips "*"

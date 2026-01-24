@@ -189,14 +189,14 @@ Command-line download
 #### Docker CLI
 
 ```bash
-docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:beta
+docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:latest
 ```
 
 #### Docker Compose
 
-```ymlfix
+```yml
 version: "3"
-services:s
+services:
   file-code-box:
     image: lanol/filecodebox:latest
     volumes:
@@ -204,20 +204,44 @@ services:s
     restart: unless-stopped
     ports:
       - "12345:12345"
+    environment:
+      - WORKERS=4
+      - LOG_LEVEL=info
 volumes:
   fcb-data:
     external: false
 ```
 
-### Configure reverse proxy (Nginx example)
+#### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HOST` | `::` | Listen address, supports IPv4/IPv6 dual-stack |
+| `PORT` | `12345` | Service port |
+| `WORKERS` | `4` | Number of worker processes, recommended to set to CPU cores |
+| `LOG_LEVEL` | `info` | Log level: debug/info/warning/error |
+
+**Custom configuration example:**
+
+```bash
+docker run -d --restart=always \
+  -p 12345:12345 \
+  -v /opt/FileCodeBox/:/app/data \
+  -e WORKERS=8 \
+  -e LOG_LEVEL=warning \
+  --name filecodebox \
+  lanol/filecodebox:latest
+```
+
+### Configure Reverse Proxy (Nginx Example)
 
 Please note that the following configurations must be added to ensure proper handling of client IP and proxy requests:
 
 ```nginx
 location / {
-proxy_set_header X-Real-IP $remote_addr; #Set real client IP
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_pass  http://localhost:12345 ; 
+    proxy_set_header X-Real-IP $remote_addr;      # Set real client IP
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_pass http://localhost:12345;
 }
 ```
 

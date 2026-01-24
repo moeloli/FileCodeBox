@@ -193,7 +193,7 @@ FileCodeBox 是一个基于 FastAPI + Vue3 开发的轻量级文件分享工具�
 #### Docker CLI
 
 ```bash
-docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:beta
+docker run -d --restart=always -p 12345:12345 -v /opt/FileCodeBox/:/app/data --name filecodebox lanol/filecodebox:latest
 ```
 
 #### Docker Compose
@@ -208,9 +208,33 @@ services:
     restart: unless-stopped
     ports:
       - "12345:12345"
+    environment:
+      - WORKERS=4
+      - LOG_LEVEL=info
 volumes:
   fcb-data:
     external: false
+```
+
+#### 环境变量
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `HOST` | `::` | 监听地址，支持 IPv4/IPv6 双栈 |
+| `PORT` | `12345` | 服务端口 |
+| `WORKERS` | `4` | 工作进程数，建议设置为 CPU 核心数 |
+| `LOG_LEVEL` | `info` | 日志级别：debug/info/warning/error |
+
+**自定义配置示例：**
+
+```bash
+docker run -d --restart=always \
+  -p 12345:12345 \
+  -v /opt/FileCodeBox/:/app/data \
+  -e WORKERS=8 \
+  -e LOG_LEVEL=warning \
+  --name filecodebox \
+  lanol/filecodebox:latest
 ```
 
 ### 配置反向代理（Nginx示例）
@@ -221,7 +245,7 @@ volumes:
 location / {
     proxy_set_header X-Real-IP $remote_addr;      # 设置真实客户端IP
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_pass http://localhost:12345; 
+    proxy_pass http://localhost:12345;
 }
 ```
 
